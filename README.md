@@ -1,0 +1,2 @@
+# godns
+GoDNS
