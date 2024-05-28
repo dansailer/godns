@@ -1,0 +1,46 @@
+name: Go Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_release:
+    name: Build release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22.3
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: |
+          go get .
+      - name: Build
+        run: |
+          for GOOS in darwin linux windows; do
+            for GOARCH in amd64; do
+              if [[ "${GOOS}" == "windows" ]]; then
+                SUFFIX=".exe"
+              fi
+              FILENAME="redish-${{ github.ref_name }}-${GOOS}-${GOARCH}${SUFFIX}"
+              CGO_ENABLED=0 go build -v -o artifacts/${FILENAME}
+              if [[ "${GOOS}" == "windows" ]]; then
+                7z a artifacts/${FILENAME}.zip artifacts/${FILENAME}
+                rm artifacts/${FILENAME}
+              else
+                tar -czvf artifacts/${FILENAME}.tar.gz artifacts/${FILENAME}
+                rm artifacts/${FILENAME}
+              fi
+            done
+          done 
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release create ${{ github.ref_name }} artifacts/* --generate-notes      
