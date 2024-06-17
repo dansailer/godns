@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/miekg/dns v1.1.59
-	go.mongodb.org/mongo-driver v1.15.0
+	go.mongodb.org/mongo-driver v1.15.1
 )
 
 require (
